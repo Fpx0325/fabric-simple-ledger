@@ -1,0 +1,15 @@
+'use strict';
+const $=id=>document.getElementById(id);
+const notice=message=>{$('notice').textContent=message;};
+async function api(path,options={}){const token=$('token').value;if(!token)throw Error('请先输入服务访问令牌');const response=await fetch(path,{...options,headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},signal:AbortSignal.timeout(65000)});const data=await response.json();if(!response.ok)throw Error(data.error||'请求失败');return data;}
+async function busy(button,work){button.disabled=true;button.setAttribute('aria-busy','true');try{await work();}catch(error){notice(error.message||'网络连接失败，请检查服务');}finally{button.disabled=false;button.removeAttribute('aria-busy');}}
+function renderEvidence(e){$('result').replaceChildren();const dl=document.createElement('dl');for(const [label,value]of [['存证编号',e.id],['凭证标题',e.title],['SHA-256 摘要',e.hash],['所属组织',e.owner_msp],['交易编号',e.tx_id],['链上时间（Unix 秒）',e.created_at]]){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;dl.append(dt,dd);}$('result').append(dl);}
+$('toggle').onclick=()=>{const show=$('token').type==='password';$('token').type=show?'text':'password';$('toggle').textContent=show?'隐藏令牌':'显示令牌';};
+$('content').addEventListener('input',()=>{$('content').style.height='auto';$('content').style.height=$('content').scrollHeight+'px';});
+$('create').addEventListener('submit',event=>{event.preventDefault();if(!event.currentTarget.reportValidity())return;busy(event.submitter,async()=>{const data=await api('/api/evidence',{method:'POST',body:JSON.stringify({id:$('id').value,title:$('title').value,content:$('content').value})});renderEvidence(data.evidence);$('queryId').value=data.evidence.id;syncClear();notice(data.warning||'存证已在链上确认，操作记录已入库。');});});
+function syncClear(){$('clear').hidden=!$('queryId').value;}syncClear();$('queryId').oninput=syncClear;$('clear').onclick=()=>{$('queryId').value='';syncClear();$('queryId').focus();$('result').textContent='等待查询';};
+$('query').addEventListener('submit',event=>{event.preventDefault();if(!event.currentTarget.reportValidity())return;busy(event.submitter,async()=>{$('result').textContent='正在查询联盟链…';try{const data=await api('/api/evidence/'+encodeURIComponent($('queryId').value));renderEvidence(data.evidence);notice(data.warning||'链上查询成功');}catch(error){$('result').textContent='查询未完成，请检查编号和服务状态后重试。';throw error;}});});
+$('refresh').onclick=()=>busy($('refresh'),async()=>{const items=await api('/api/operations');$('logs').replaceChildren();if(!items.length){const row=$('logs').insertRow();const cell=row.insertCell();cell.colSpan=5;cell.textContent='暂无操作记录。';}for(const item of items){const row=$('logs').insertRow();for(const key of ['id','evidence_id','action','status','created_at'])row.insertCell().textContent=item[key];}notice('操作记录已更新');});
+$('reconcile').onclick=()=>busy($('reconcile'),async()=>{const data=await api('/api/reconcile',{method:'POST'});notice('核对完成：'+data.reconciled+' 条记录在链上找到。请刷新操作记录。');});
+
+for(const id of ['toggle','clear','reconcile','refresh']) document.getElementById(id).disabled=false;
