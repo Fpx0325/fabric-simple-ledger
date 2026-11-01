@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/example/fabric-simple-ledger/internal/ledger"
+	"github.com/Fpx0325/fabric-simple-ledger/internal/ledger"
 	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"log/slog"

@@ -134,7 +134,7 @@ Ctrl+C 停后端；`docker compose stop` 停 MySQL 并保留数据。再次运�
 3. 检查 `git status`，确保 `.env`、证书、私钥、网络生成目录均未被跟踪。
 4. 按 GitHub 空仓库页面给出的命令设置 remote 并推送 main 分支。
 
-项目使用 MIT 协议。发布前将 LICENSE 中版权方改成你的姓名或 GitHub 用户名（如需要），并把 go.mod 的 example 路径改成实际地址后同步 internal 包 import。保留 example 路径也不影响本地编译。
+项目使用 MIT 协议。Go 模块路径已配置为 `github.com/Fpx0325/fabric-simple-ledger`。
 
 ## 参考
 

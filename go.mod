@@ -1,4 +1,4 @@
-module github.com/example/fabric-simple-ledger
+module github.com/Fpx0325/fabric-simple-ledger
 
 go 1.23.0
 
